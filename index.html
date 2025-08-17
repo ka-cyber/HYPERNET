@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HYPERNET Mission Control</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Mission Control Header -->
+    <header class="mission-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <h1 class="mission-logo">HYPERNET</h1>
+                <span class="mission-subtitle">Mission Control</span>
+            </div>
+            <div class="status-section">
+                <div class="mission-clock">
+                    <span class="clock-label">MET</span>
+                    <span class="clock-time" id="missionClock">00:00:00</span>
+                </div>
+                <div class="system-status">
+                    <div class="status-indicator operational">
+                        <div class="status-light"></div>
+                        <span>OPERATIONAL</span>
+                    </div>
+                </div>
+            </div>
+            <div class="simulation-controls">
+                <button class="sim-btn" id="playPauseBtn">⏸️</button>
+                <select class="sim-speed" id="speedControl">
+                    <option value="0.5">0.5x</option>
+                    <option value="1" selected>1x</option>
+                    <option value="2">2x</option>
+                    <option value="5">5x</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <div class="dashboard-container">
+        <!-- Left Panel - Controls -->
+        <aside class="control-panel">
+            <div class="panel-section">
+                <h3 class="panel-title">Camera Controls</h3>
+                <div class="control-group">
+                    <button class="control-btn active" data-view="earth">🌍 Earth View</button>
+                    <button class="control-btn" data-view="satellite">🛰️ Satellite Follow</button>
+                    <button class="control-btn" data-view="uav">✈️ UAV Follow</button>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <h3 class="panel-title">Overlay Controls</h3>
+                <div class="control-group">
+                    <label class="overlay-toggle">
+                        <input type="checkbox" id="coverageOverlay" checked>
+                        <span>Coverage</span>
+                    </label>
+                    <label class="overlay-toggle">
+                        <input type="checkbox" id="latencyOverlay">
+                        <span>Latency</span>
+                    </label>
+                    <label class="overlay-toggle">
+                        <input type="checkbox" id="throughputOverlay">
+                        <span>Throughput</span>
+                    </label>
+                    <label class="overlay-toggle">
+                        <input type="checkbox" id="linksOverlay">
+                        <span>Links</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3 class="panel-title">Network Performance</h3>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <span class="metric-label">Throughput</span>
+                        <span class="metric-value" id="throughput">1,511.61 Mbps</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Latency</span>
+                        <span class="metric-value" id="latency">20.76 ms</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Packet Delivery</span>
+                        <span class="metric-value" id="packetDelivery">99.9%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Optimization</span>
+                        <span class="metric-value" id="optimization">87.5%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3 class="panel-title">System Status</h3>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="status-label">Satellites</span>
+                        <span class="status-value">93/100</span>
+                        <div class="status-bar">
+                            <div class="status-fill" style="width: 93%"></div>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">UAVs</span>
+                        <span class="status-value">25/25</span>
+                        <div class="status-bar">
+                            <div class="status-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Ground Stations</span>
+                        <span class="status-value">4/5</span>
+                        <div class="status-bar">
+                            <div class="status-fill" style="width: 80%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center - 3D Visualization -->
+        <main class="visualization-center">
+            <div class="viz-header">
+                <h2 class="viz-title">3D Earth Visualization</h2>
+                <div class="viz-controls">
+                    <button class="export-btn" id="exportData">📊 Export Data</button>
+                    <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
+                </div>
+            </div>
+            <div class="three-container" id="threeContainer">
+                <!-- Three.js 3D Scene will be rendered here -->
+            </div>
+            
+            <!-- Object Info Panel -->
+            <div class="object-info hidden" id="objectInfo">
+                <div class="info-header">
+                    <h4 id="objectTitle">Object Details</h4>
+                    <button class="close-btn" id="closeInfo">×</button>
+                </div>
+                <div class="info-content" id="infoContent">
+                    <!-- Object details will be populated here -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Panel - Analytics -->
+        <aside class="analytics-panel">
+            <div class="panel-section">
+                <h3 class="panel-title">AI Modules</h3>
+                <div class="ai-module">
+                    <div class="module-header">
+                        <span class="module-name">Physics-Informed RL</span>
+                        <span class="module-status active">ACTIVE</span>
+                    </div>
+                    <div class="module-metrics">
+                        <div class="module-metric">
+                            <span>Efficiency:</span>
+                            <span>86.9%</span>
+                        </div>
+                        <div class="module-metric">
+                            <span>Accuracy:</span>
+                            <span>95.7%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="ai-module">
+                    <div class="module-header">
+                        <span class="module-name">Federated Learning</span>
+                        <span class="module-status active">ACTIVE</span>
+                    </div>
+                    <div class="module-metrics">
+                        <div class="module-metric">
+                            <span>Accuracy:</span>
+                            <span>95.6%</span>
+                        </div>
+                        <div class="module-metric">
+                            <span>Privacy Budget:</span>
+                            <span>1.20</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="ai-module">
+                    <div class="module-header">
+                        <span class="module-name">RLNC</span>
+                        <span class="module-status active">ACTIVE</span>
+                    </div>
+                    <div class="module-metrics">
+                        <div class="module-metric">
+                            <span>Decode Rate:</span>
+                            <span>97.4%</span>
+                        </div>
+                        <div class="module-metric">
+                            <span>Bandwidth Eff:</span>
+                            <span>74.3%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3 class="panel-title">Performance Charts</h3>
+                <div class="chart-container">
+                    <img src="https://ppl-ai-code-interpreter-files.s3.amazonaws.com/web/direct-files/dace26eabc94f0cceb581549292ae7a1/91938418-6cde-4f84-b05a-4beac4c5aed4/02a27fed.png" alt="Network Performance Dashboard" class="performance-chart">
+                </div>
+                <div class="chart-container">
+                    <img src="https://ppl-ai-code-interpreter-files.s3.amazonaws.com/web/direct-files/dace26eabc94f0cceb581549292ae7a1/b7baaa67-2e40-45db-8529-2a622059580a/7683ef72.png" alt="Federated Learning Convergence" class="performance-chart">
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3 class="panel-title">Telemetry Feed</h3>
+                <div class="telemetry-feed" id="telemetryFeed">
+                    <div class="telemetry-item">
+                        <span class="telemetry-time">14:32:15</span>
+                        <span class="telemetry-msg">Satellite SAT-034 reporting nominal status</span>
+                    </div>
+                    <div class="telemetry-item">
+                        <span class="telemetry-time">14:32:10</span>
+                        <span class="telemetry-msg">UAV-15 completed mission waypoint</span>
+                    </div>
+                    <div class="telemetry-item">
+                        <span class="telemetry-time">14:32:05</span>
+                        <span class="telemetry-msg">Ground station Boston online</span>
+                    </div>
+                    <div class="telemetry-item">
+                        <span class="telemetry-time">14:32:01</span>
+                        <span class="telemetry-msg">Network optimization cycle completed</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Additional Charts Modal -->
+    <div class="modal hidden" id="chartsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detailed Performance Analysis</h3>
+                <button class="close-btn" id="closeModal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="charts-grid">
+                    <div class="chart-item">
+                        <img src="https://ppl-ai-code-interpreter-files.s3.amazonaws.com/web/direct-files/dace26eabc94f0cceb581549292ae7a1/3d0e9840-486d-4ad6-97db-22387aa9833f/7a1b52f4.png" alt="Physics-RL Training Progress" class="modal-chart">
+                    </div>
+                    <div class="chart-item">
+                        <img src="https://ppl-ai-code-interpreter-files.s3.amazonaws.com/web/direct-files/dace26eabc94f0cceb581549292ae7a1/78aca0a8-5827-49be-b858-690ece26ca08/4427339b.png" alt="RLNC Performance Analysis" class="modal-chart">
+                    </div>
+                    <div class="chart-item">
+                        <img src="https://ppl-ai-code-interpreter-files.s3.amazonaws.com/web/direct-files/dace26eabc94f0cceb581549292ae7a1/315154d8-1b7b-4f95-bd29-cd2e7bcedf56/e1fb305f.png" alt="Satellite Constellation Status" class="modal-chart">
+                    </div>
+                    <div class="chart-item">
+                        <img src="https://ppl-ai-code-interpreter-files.s3.amazonaws.com/web/direct-files/dace26eabc94f0cceb581549292ae7a1/7f027d92-e3cf-4572-b9a5-5908ad7ae6fb/48ff227b.png" alt="UAV Performance Analysis" class="modal-chart">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
